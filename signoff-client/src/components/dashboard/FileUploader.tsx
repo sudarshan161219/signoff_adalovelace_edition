@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { UploadCloud, Loader2, FileText, X } from "lucide-react";
+import { UploadCloud, FileText, X } from "lucide-react";
 import styles from "./index.module.css";
 import { useUploadDeliverable } from "@/hooks/useProject/export";
 
