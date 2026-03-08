@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  
+  adminToken  String   @unique @default(uuid()) 
+  publicToken String   @unique @default(uuid()) 
+  
+  // --- WORKFLOW STATE ---
+  status     ProjectStatus @default(PENDING)
+  expiresAt DateTime?
+
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+
+  file        File?    
+  decisions ApprovalDecision[]
+  logs        AuditLog[]
+}
+
+model ApprovalDecision {
+  id          String   @id @default(uuid())
+
+  type          ApprovalDecisionType 
+  comment     String?
+
+  actorRole     ActorRole?
+
+  // Trust metadata
+  clientName  String?
+  clientEmail String?
+  ipAddress   String?
+  userAgent   String?
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+
+  createdAt   DateTime @default(now())
+}
+
+
+model File {
+  id          String   @id @default(uuid())
+  
+  fileName    String
+  mimeType    String   // e.g. "image/png", "application/pdf"
+  size        Int      // in bytes
+  
+  // The path inside Cloudflare R2
+  storageKey  String   
+  
+  // 1-to-1 Relation: One Project has exactly One File
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String   @unique 
+  
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      LogAction
+  actorRole  ActorRole
+
+  // Metadata for the "Trust" factor
+  ipAddress   String?
+  userAgent   String?  // e.g. "Chrome on iPhone"
+  
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  
+  createdAt   DateTime @default(now())
+}
+
+// --- ENUMS (Strict Typing) ---
+enum ActorRole {
+  ADMIN
+  CLIENT
+}
+
+enum ProjectStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+  EXPIRED
+}
+
+enum ApprovalDecisionType {
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+enum LogAction {
+  PROJECT_CREATED
+  PROJECT_UPDATED
+  FILE_UPLOADED
+  CLIENT_VIEWED
+  CLIENT_APPROVED
+  CLIENT_REQUESTED_CHANGES
+}
