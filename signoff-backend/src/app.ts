@@ -43,7 +43,7 @@ export class App {
             ],
           },
         },
-      })
+      }),
     );
     this.app.use(express.json());
 
@@ -52,9 +52,12 @@ export class App {
         origin:
           process.env.NODE_ENV === "production"
             ? process.env.FRONTEND_URL
-            : ["http://localhost:5173"],
+            : [
+                "http://localhost:5173",
+                "https://production-signoff-client.tyzo.nodeops.app",
+              ],
         credentials: true,
-      })
+      }),
     );
   }
 
@@ -63,7 +66,7 @@ export class App {
       rateLimit({
         windowMs: 15 * 60 * 1000,
         max: 300,
-      })
+      }),
     );
 
     this.app.use(
@@ -71,7 +74,7 @@ export class App {
       rateLimit({
         windowMs: 15 * 60 * 1000,
         max: 30,
-      })
+      }),
     );
   }
 
